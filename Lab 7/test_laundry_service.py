@@ -64,10 +64,18 @@ def test_payable_charge_no_crash(value):
 
 
 @given(
-    st.floats(min_value=0, max_value=100000,
-              allow_nan=False, allow_infinity=False),
-    st.floats(min_value=0, max_value=100,
-              allow_nan=False, allow_infinity=False)
+    st.floats(
+        min_value=0,
+        max_value=100000,
+        allow_nan=False,
+        allow_infinity=False
+    ),
+    st.floats(
+        min_value=0,
+        max_value=100,
+        allow_nan=False,
+        allow_infinity=False
+    )
 )
 def test_payable_charge_valid_values(charge, discount):
     result = payable_charge(f"{charge}|{discount}")

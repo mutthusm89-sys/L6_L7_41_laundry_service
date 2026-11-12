@@ -3,16 +3,11 @@ def parse_order(text):
     if not isinstance(text, str):
         raise ValueError("Order must be a string")
 
-    if ":" not in text:
-        raise ValueError("Invalid order format. Use garment:weight")
-
     parts = text.split(":")
-
     if len(parts) != 2:
-        raise ValueError("Invalid order format")
+        raise ValueError("Use garment:weight format")
 
     garment, kg = parts
-
     garment = garment.strip().lower()
 
     if garment not in ["regular", "premium", "delicate"]:
@@ -20,31 +15,31 @@ def parse_order(text):
 
     try:
         kg = float(kg.strip())
-    except (ValueError, AttributeError):
+    except ValueError:
         raise ValueError("Weight must be a number")
 
-    if kg <= 0:
-        raise ValueError("Weight must be positive")
+    if not 0 < kg < float("inf"):
+        raise ValueError("Weight must be positive and finite")
 
     return garment.capitalize(), kg
 
 
-def weight_average(text):
-    if not isinstance(text, str):
+def weight_average(weights_csv):
+    if not isinstance(weights_csv, str):
         raise ValueError("Weights must be a string")
 
-    if not text.strip():
+    if not weights_csv.strip():
         raise ValueError("Weight list cannot be empty")
 
     try:
-        weights = [float(x.strip()) for x in text.split(",")]
+        values = [float(x.strip()) for x in weights_csv.split(",")]
     except ValueError:
         raise ValueError("All weights must be numbers")
 
-    if any(w <= 0 for w in weights):
-        raise ValueError("Weights must be positive")
+    if any(not (0 < x < float("inf")) for x in values):
+        raise ValueError("Weights must be positive and finite")
 
-    return sum(weights) / len(weights)
+    return sum(values) / len(values)
 
 
 def payable_charge(text):
@@ -52,7 +47,6 @@ def payable_charge(text):
         raise ValueError("Charge must be a string")
 
     parts = text.split("|")
-
     if len(parts) != 2:
         raise ValueError("Use charge|discount format")
 
@@ -62,45 +56,35 @@ def payable_charge(text):
     except ValueError:
         raise ValueError("Charge and discount must be numbers")
 
-    if charge < 0:
-        raise ValueError("Charge cannot be negative")
+    if not (0 <= charge < float("inf")):
+        raise ValueError("Charge must be non-negative and finite")
 
-    if not 0 <= discount <= 100:
+    if not (0 <= discount <= 100):
         raise ValueError("Discount must be between 0 and 100")
 
-    discounted_charge = charge - (charge * discount / 100)
-
+    discounted_charge = charge * (1 - discount / 100)
     return discounted_charge * 1.18
 
 
 def main():
     print("==== Running parse_order ====")
-    user_input = input(
-        "Enter garment:weight in kg (e.g. regular:6): "
-    )
+    user_input = input("Enter garment:weight (e.g. regular:6): ")
     try:
-        result = parse_order(user_input)
-        print("Garment and Weight:", result)
+        print("Garment and Weight:", parse_order(user_input))
     except ValueError as e:
         print("Error:", e)
 
     print("\n==== Running weight_average ====")
-    user_input = input(
-        "Enter garment weights as CSV (e.g. 3,5,8): "
-    )
+    user_input = input("Enter garment weights (e.g. 3,5,8): ")
     try:
-        result = weight_average(user_input)
-        print("Average Weight:", round(result, 2))
+        print("Average Weight:", round(weight_average(user_input), 2))
     except ValueError as e:
         print("Error:", e)
 
     print("\n==== Running payable_charge ====")
-    user_input = input(
-        "Enter charge|discount (e.g. 300|40): "
-    )
+    user_input = input("Enter charge|discount (e.g. 300|40): ")
     try:
-        result = payable_charge(user_input)
-        print("Payable Charge:", round(result, 2))
+        print("Payable Charge:", round(payable_charge(user_input), 2))
     except ValueError as e:
         print("Error:", e)
 
